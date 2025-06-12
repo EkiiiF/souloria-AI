@@ -4,6 +4,7 @@
 *.pyc
 *.pyo
 *.pyd
+/chroma_data/
 
 # Lingkungan (SANGAT PENTING!)
 .env

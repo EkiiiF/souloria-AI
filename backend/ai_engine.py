@@ -1,18 +1,20 @@
-# backend/ai_engine.py
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer, util
-import torch
+from sentence_transformers import SentenceTransformer
+import chromadb
+from sqlalchemy.orm import Session
+from backend import crud
 
-# Variabel global untuk lazy loading
+# Lazy-load
 semantic_model = None
 gemini_model = None
 
+# Inisialisasi ChromaDB client global (persistent)
+chroma_client = chromadb.PersistentClient(path="chroma_data")
+collection = chroma_client.get_collection(name="souloria_articles")
+
 def get_semantic_model():
-    """
-    Lazy-load model SentenceTransformer hanya saat dibutuhkan.
-    """
     global semantic_model
     if semantic_model is None:
         print("Memuat model semantic search... (hanya sekali)")
@@ -20,9 +22,6 @@ def get_semantic_model():
     return semantic_model
 
 def get_gemini_model():
-    """
-    Lazy-load konfigurasi dan model Gemini hanya saat dibutuhkan.
-    """
     global gemini_model
     if gemini_model is None:
         print("Mengkonfigurasi model Gemini AI...")
@@ -36,7 +35,6 @@ def get_gemini_model():
         }
         safety_settings = [
             {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            # Tambahkan threshold lain sesuai kebutuhan
         ]
         gemini_model = genai.GenerativeModel(
             model_name="gemini-1.5-flash",
@@ -45,27 +43,27 @@ def get_gemini_model():
         )
     return gemini_model
 
-def find_relevant_articles(query: str, articles: list, top_k=3):
+# ✅ REPLACE fungsi find_relevant_articles dengan versi ChromaDB
+def find_relevant_articles(query: str, db: Session, top_k=3):
     """
-    Mencari artikel paling relevan menggunakan vector similarity.
+    Mencari artikel paling relevan menggunakan ChromaDB.
     """
-    if not articles:
+    model = get_semantic_model()
+    query_embedding = model.encode(query).tolist()
+
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k
+    )
+
+    article_ids_str = results['ids'][0]
+    if not article_ids_str:
         return []
 
-    model = get_semantic_model()
+    article_ids = [int(id_str) for id_str in article_ids_str]
+    print(f"ChromaDB menemukan ID relevan: {article_ids}")
 
-    corpus = [article.isi_artikel_full for article in articles]
-    corpus_embeddings = model.encode(corpus, convert_to_tensor=True)
-    query_embedding = model.encode(query, convert_to_tensor=True)
-
-    cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
-    top_results = torch.topk(cos_scores, k=min(top_k, len(corpus)))
-
-    relevant_articles = []
-    for score, idx in zip(top_results[0], top_results[1]):
-        relevant_articles.append(articles[int(idx)])
-        print(f"Artikel: {articles[int(idx)].judul}, Skor: {score:.4f}")
-
+    relevant_articles = crud.get_articles_by_ids(db=db, article_ids=article_ids)
     return relevant_articles
 
 def generate_ai_response(query: str, relevant_articles: list):
