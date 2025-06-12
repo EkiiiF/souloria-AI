@@ -1,6 +1,7 @@
 # backend/models.py
 from sqlalchemy import Column, Integer, String, Text, Date
 from backend.database import Base
+from sqlalchemy import Column, Integer, Text, Boolean, DateTime, func
 
 class Artikel(Base):
     __tablename__ = "data_artikel"
@@ -18,3 +19,12 @@ class Artikel(Base):
     isi_artikel_filtered = Column(Text)
     isi_artikel_stemmed = Column(Text)
     isi_artikel_full = Column(Text) # Kita akan fokus pada kolom ini untuk konten
+
+class FeedbackLog(Base):
+    __tablename__ = "feedback_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    query_text = Column(Text, nullable=False)
+    response_text = Column(Text, nullable=False)
+    is_helpful = Column(Boolean, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

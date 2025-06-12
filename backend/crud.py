@@ -1,6 +1,6 @@
 # backend/crud.py
 from sqlalchemy.orm import Session
-from . import models
+from . import models, schemas
 
 # Fungsi untuk membaca semua artikel dari database
 def get_all_articles(db: Session):
@@ -9,9 +9,13 @@ def get_all_articles(db: Session):
     """
     return db.query(models.Artikel).all()
 
-# Nanti kita bisa tambahkan fungsi lain di sini, misalnya:
-# def get_artikel_by_id(db: Session, artikel_id: int):
-#     return db.query(models.Artikel).filter(models.Artikel.id == artikel_id).first()
-#
-# def create_feedback(...):
-#     ...
+def create_feedback_log(db: Session, feedback: schemas.FeedbackCreate):
+    db_feedback = models.FeedbackLog(
+        query_text=feedback.query,
+        response_text=feedback.response,
+        is_helpful=feedback.is_helpful
+    )
+    db.add(db_feedback)
+    db.commit()
+    db.refresh(db_feedback)
+    return db_feedback

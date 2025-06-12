@@ -175,3 +175,143 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+/* Feedback Section Styles */
+.feedbackSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.feedbackSection p {
+  margin-bottom: 1rem;
+  color: var(--light-text-color);
+}
+
+.feedbackButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background-color: transparent;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.feedbackButton.helpful:hover {
+  background-color: #e8f5e9; /* Light green */
+  border-color: #4caf50; /* Green */
+}
+
+.feedbackButton.notHelpful:hover {
+  background-color: #ffebee; /* Light red */
+  border-color: #f44336; /* Red */
+}
+
+.feedbackThanks {
+  font-style: italic;
+  color: var(--primary-color);
+}
+
+/* Emergency Help Page Styles */
+.emergency-disclaimer {
+  background-color: #ffebee; /* Light red */
+  border-left-color: #f44336; /* Red */
+  text-align: left;
+  margin: 2rem 0;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.resource-card {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-card h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.resource-card p {
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+.resource-card.hotline-card {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.hotline-card h2, .hotline-card a {
+  color: white;
+}
+
+.contact-info {
+  margin-top: 1rem;
+}
+
+.resource-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.resource-link:hover {
+  background-color: #574fd8;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 3rem;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* Footer Styles */
+.site-footer {
+  width: 100%;
+  padding: 2rem;
+  background-color: var(--secondary-color);
+  border-top: 1px solid #e0e0e0;
+  margin-top: 4rem;
+  text-align: center;
+  color: var(--light-text-color);
+  font-size: 0.9rem;
+}
+
+.site-footer nav {
+  margin-top: 0.5rem;
+}
+
+.site-footer nav a {
+  color: var(--primary-color);
+  text-decoration: none;
+  margin: 0 0.5rem;
+}
+
+.site-footer nav a:hover {
+  text-decoration: underline;
+}

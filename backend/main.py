@@ -49,3 +49,8 @@ def search(search_query: schemas.SearchQuery, db: Session = Depends(get_db)):
         sources = [{"judul": art.judul, "url": art.url, "sumber": art.sumber} for art in relevant_articles]
 
     return {"response": ai_response, "sources": sources}
+
+@app.post("/feedback", status_code=201)
+def receive_feedback(feedback_data: schemas.FeedbackCreate, db: Session = Depends(get_db)):
+    crud.create_feedback_log(db=db, feedback=feedback_data)
+    return {"message": "Thank you for your feedback!"}

@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react';
 
-// Definisikan tipe data untuk hasil pencarian agar lebih aman
 interface Source {
   judul: string;
   url: string;
@@ -19,6 +18,7 @@ export default function Home() {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
 
   const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,14 +27,12 @@ export default function Home() {
     setIsLoading(true);
     setResult(null);
     setError('');
+    setFeedbackSent(false); // Reset feedback saat cari baru
 
     try {
-      // Panggil API backend yang berjalan di port 8000
       const response = await fetch('http://127.0.0.1:8000/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
 
@@ -52,6 +50,25 @@ export default function Home() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFeedback = async (isHelpful: boolean) => {
+    if (!result || feedbackSent) return;
+
+    try {
+      await fetch('http://127.0.0.1:8000/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: query,
+          response: result.response,
+          is_helpful: isHelpful,
+        }),
+      });
+      setFeedbackSent(true);
+    } catch (err) {
+      console.error('Gagal mengirim feedback:', err);
     }
   };
 
@@ -87,7 +104,7 @@ export default function Home() {
                 <p key={index}>{paragraph}</p>
               ))}
             </div>
-            
+
             {result.sources && result.sources.length > 0 && (
               <div className="sources">
                 <h3>Sumber Artikel:</h3>
@@ -103,7 +120,24 @@ export default function Home() {
                 </ul>
               </div>
             )}
-            
+
+            {/* BLOK FEEDBACK */}
+            <div className="feedbackSection">
+              {!feedbackSent ? (
+                <>
+                  <p>Apakah jawaban ini membantu?</p>
+                  <button onClick={() => handleFeedback(true)} className="feedbackButton helpful">
+                    👍 Membantu
+                  </button>
+                  <button onClick={() => handleFeedback(false)} className="feedbackButton notHelpful">
+                    👎 Tidak Membantu
+                  </button>
+                </>
+              ) : (
+                <p className="feedbackThanks">Terima kasih atas masukan Anda!</p>
+              )}
+            </div>
+
             <p className="disclaimer">
               <strong>Penting:</strong> Souloria adalah asisten AI dan bukan pengganti nasihat medis profesional. Jika Anda merasa membutuhkan bantuan, jangan ragu untuk menghubungi psikolog atau psikiater.
             </p>

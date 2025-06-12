@@ -23,3 +23,8 @@ class Artikel(ArtikelBase):
     # Ini memungkinkan Pydantic membaca data dari objek SQLAlchemy
     class Config:
         from_attributes = True
+
+class FeedbackCreate(BaseModel):
+    query: str
+    response: str
+    is_helpful: bool
