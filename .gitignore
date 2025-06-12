@@ -1,0 +1,58 @@
+# ================= Umum / Root ==================
+# File environment utama (SANGAT PENTING)
+.env
+
+# Folder spesifik editor (VSCode, Jetbrains)
+.vscode/
+.idea/
+
+# File & Folder dari sistem operasi
+.DS_Store
+Thumbs.db
+
+# Folder yang terlihat di screenshot Anda
+OUTLINE/
+
+# Jupyter / IPython Notebook checkpoints
+.ipynb_checkpoints/
+
+# File backup & swap
+*.bak
+*.swp
+
+
+# ============== Backend (Python) ==============
+# Folder virtual environment Python
+backend/venv/
+backend/.venv/
+
+# Cache & file kompilasi Python
+backend/__pycache__/
+*.py[cod]
+
+# File database & log (jangan commit data)
+*.sqlite3
+*.db
+*.log
+
+# File spesifik PyInstaller
+*.spec
+
+
+# ============== Frontend (Next.js) ==============
+# Folder dependensi & hasil build
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# File environment lokal Next.js
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Log build
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
