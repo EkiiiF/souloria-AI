@@ -1,6 +1,8 @@
 // frontend/src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+import Sidebar from "@/components/Sidebar"; // Impor Sidebar
 
 export const metadata: Metadata = {
   title: "Souloria AI",
@@ -14,7 +16,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        {/* AuthProvider HARUS membungkus semua elemen lain */}
+        <AuthProvider>
+          <div className="app-layout">
+            <Sidebar />
+            <main id="main-content">
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
