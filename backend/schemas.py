@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import date
+from datetime import datetime
 
 # Schema untuk menerima query dari frontend
 class SearchQuery(BaseModel):
@@ -24,7 +25,41 @@ class Artikel(ArtikelBase):
     class Config:
         from_attributes = True
 
+# Skema untuk menerima data feedback dari pengguna
 class FeedbackCreate(BaseModel):
     query: str
     response: str
     is_helpful: bool
+
+
+# --- IMPLEMENTASI BARU: Skema untuk Pengguna & Autentikasi ---
+
+class UserBase(BaseModel):
+    email: str
+    nama_pengguna: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+class ChatMessage(BaseModel):
+    id: int
+    role: str
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
