@@ -237,6 +237,8 @@ from typing import List, Optional
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 import uuid
+from fastapi.responses import StreamingResponse
+import json # Impor json
 
 # Impor semua modul yang dibutuhkan dari paket backend
 from backend import models, crud, ai_engine, schemas, auth, security
@@ -309,20 +311,53 @@ def search(
     if current_user:
         crud.create_chat_message(db, user_id=current_user.id, session_id=session_id, role="user", content=query)
 
+    # relevant_articles = ai_engine.find_relevant_articles(query=query, db=db, top_k=3)
+
+    # if not relevant_articles:
+    #     ai_response = "Maaf, kami belum menemukan artikel yang sesuai dengan pertanyaan Anda."
+    #     sources = []
+    # else:
+    #     ai_response = ai_engine.generate_ai_response(query, relevant_articles)
+    #     sources = [{"judul": art.judul, "url": art.url, "sumber": art.sumber} for art in relevant_articles]
+
+    # if current_user:
+    #     crud.create_chat_message(db, user_id=current_user.id, session_id=session_id, role="ai", content=ai_response)
+
+    # return {"response": ai_response, "sources": sources}
     relevant_articles = ai_engine.find_relevant_articles(query=query, db=db, top_k=3)
 
     if not relevant_articles:
-        ai_response = "Maaf, kami belum menemukan artikel yang sesuai dengan pertanyaan Anda."
+        ai_response_content = "Maaf, kami belum menemukan artikel yang sesuai dengan pertanyaan Anda."
         sources = []
+        
+        # Simpan jawaban default ini ke DB jika user login
+        if current_user:
+            crud.create_chat_message(db, user_id=current_user.id, session_id=session_id, role="ai", content=ai_response_content)
+        
+        return {"response": ai_response_content, "sources": sources} # Kembalikan seperti biasa jika tidak ada artikel
+    
     else:
-        ai_response = ai_engine.generate_ai_response(query, relevant_articles)
+        # Siapkan generator dan data sources
+        response_generator = ai_engine.generate_ai_response(query, relevant_articles)
         sources = [{"judul": art.judul, "url": art.url, "sumber": art.sumber} for art in relevant_articles]
+        
+        # Kita akan menyimpan respons lengkap nanti setelah streaming selesai
+        full_response_text = []
+        
+        def stream_wrapper():
+            for chunk in response_generator:
+                full_response_text.append(chunk)
+                yield chunk
+            
+            # Setelah streaming selesai, simpan respons lengkap ke DB jika user login
+            if current_user:
+                final_text = "".join(full_response_text)
+                crud.create_chat_message(db, user_id=current_user.id, session_id=session_id, role="ai", content=final_text)
 
-    if current_user:
-        crud.create_chat_message(db, user_id=current_user.id, session_id=session_id, role="ai", content=ai_response)
-
-    return {"response": ai_response, "sources": sources}
-
+        # Kirim sources melalui header
+        headers = { "X-Sources": json.dumps(sources) }
+        return StreamingResponse(stream_wrapper(), media_type="text/plain", headers=headers)
+    
 @app.post("/feedback", status_code=status.HTTP_201_CREATED)
 def receive_feedback(feedback_data: schemas.FeedbackCreate, db: Session = Depends(get_db)):
     crud.create_feedback_log(db=db, feedback=feedback_data)

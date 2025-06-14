@@ -66,35 +66,59 @@ def find_relevant_articles(query: str, db: Session, top_k=3):
     relevant_articles = crud.get_articles_by_ids(db=db, article_ids=article_ids)
     return relevant_articles
 
-def generate_ai_response(query: str, relevant_articles: list):
-    """
-    Menghasilkan jawaban dari Gemini berdasarkan query dan artikel relevan.
-    """
-    model = get_gemini_model()
+# def generate_ai_response(query: str, relevant_articles: list):
+#     """
+#     Menghasilkan jawaban dari Gemini berdasarkan query dan artikel relevan.
+#     """
+#     model = get_gemini_model()
 
+#     context = "Berikut adalah beberapa artikel terpercaya mengenai kesehatan mental:\n\n"
+#     for i, article in enumerate(relevant_articles):
+#         context += f"--- Artikel {i+1}: {article.judul} ---\n"
+#         context += " ".join(article.isi_artikel_full.split()[:500])
+#         context += "\n\n"
+
+#     prompt = f"""
+#     Anda adalah Souloria, asisten AI yang empatik dan peduli terhadap kesehatan mental.
+#     Tugas Anda adalah menjawab pertanyaan pengguna dengan hangat, mendukung, dan berdasarkan informasi dari artikel yang telah disediakan.
+#     Jangan pernah memberikan diagnosis medis. Selalu sarankan untuk berkonsultasi dengan profesional (psikolog atau psikiater) jika situasinya serius.
+
+#     KONTEKS DARI ARTIKEL:
+#     {context}
+
+#     PERTANYAAN PENGGUNA:
+#     "{query}"
+
+#     JAWABAN ANDA (dalam Bahasa Indonesia, dengan nada empatik):
+#     """
+
+#     try:
+#         response = model.generate_content(prompt)
+#         return response.text
+#     except Exception as e:
+#         print(f"Error saat memanggil Gemini API: {e}")
+#         return "Maaf, sepertinya ada sedikit kendala di pihak kami. Silakan coba beberapa saat lagi."
+
+# backend/ai_engine.py
+# ... (import yang sudah ada)
+
+def generate_ai_response(query: str, relevant_articles: list):
+    # ... (kode untuk membuat context tetap sama) ...
     context = "Berikut adalah beberapa artikel terpercaya mengenai kesehatan mental:\n\n"
     for i, article in enumerate(relevant_articles):
         context += f"--- Artikel {i+1}: {article.judul} ---\n"
         context += " ".join(article.isi_artikel_full.split()[:500])
         context += "\n\n"
-
+    
     prompt = f"""
-    Anda adalah Souloria, asisten AI yang empatik dan peduli terhadap kesehatan mental.
-    Tugas Anda adalah menjawab pertanyaan pengguna dengan hangat, mendukung, dan berdasarkan informasi dari artikel yang telah disediakan.
-    Jangan pernah memberikan diagnosis medis. Selalu sarankan untuk berkonsultasi dengan profesional (psikolog atau psikiater) jika situasinya serius.
-
-    KONTEKS DARI ARTIKEL:
-    {context}
-
-    PERTANYAAN PENGGUNA:
-    "{query}"
-
-    JAWABAN ANDA (dalam Bahasa Indonesia, dengan nada empatik):
+    Anda adalah Souloria... (seluruh prompt Anda)
     """
-
+    
     try:
-        response = model.generate_content(prompt)
-        return response.text
+        # Gunakan stream=True untuk mendapatkan respons secara bertahap
+        response_stream = gemini_model.generate_content(prompt, stream=True)
+        for chunk in response_stream:
+            # 'yield' akan mengirim setiap potongan teks ke pemanggilnya
+            yield chunk.text
     except Exception as e:
-        print(f"Error saat memanggil Gemini API: {e}")
-        return "Maaf, sepertinya ada sedikit kendala di pihak kami. Silakan coba beberapa saat lagi."
+        yield f"Maaf, terjadi kendala saat menghubungi AI: {e}"

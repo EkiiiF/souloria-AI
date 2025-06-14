@@ -756,6 +756,42 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isLoading]);
 
+  // const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   if (!query.trim() || isLoading) return;
+
+  //   const currentQuery = query;
+  //   const userMessage: ChatMessage = { id: Date.now(), role: 'user', content: currentQuery };
+    
+  //   setChatHistory(prev => [...prev, userMessage]);
+  //   setQuery('');
+  //   setIsLoading(true);
+
+  //   try {
+  //     const response = await fetch('http://127.0.0.1:8000/search', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         ...(token && { 'Authorization': `Bearer ${token}` })
+  //       },
+  //       body: JSON.stringify({ query: currentQuery }),
+  //     });
+
+  //     if (!response.ok) throw new Error('Gagal mendapatkan respons dari server.');
+
+  //     const data = await response.json();
+  //     const aiMessage: ChatMessage = { id: Date.now() + 1, role: 'ai', content: data.response, sources: data.sources };
+      
+  //     setChatHistory(prev => [...prev, aiMessage]);
+  //   } catch (err) {
+  //     const errorText = err instanceof Error ? err.message : 'Terjadi kesalahan.';
+  //     const errorMessage: ChatMessage = { id: Date.now() + 1, role: 'ai', content: errorText };
+  //     setChatHistory(prev => [...prev, errorMessage]);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!query.trim() || isLoading) return;
@@ -778,11 +814,31 @@ export default function ChatPage() {
       });
 
       if (!response.ok) throw new Error('Gagal mendapatkan respons dari server.');
+      if (!response.body) throw new Error("Tidak ada body respons.");
 
-      const data = await response.json();
-      const aiMessage: ChatMessage = { id: Date.now() + 1, role: 'ai', content: data.response, sources: data.sources };
+      // Ambil sources dari header
+      const sourcesHeader = response.headers.get('X-Sources');
+      const sources: Source[] = sourcesHeader ? JSON.parse(sourcesHeader) : [];
+
+      // Siapkan pesan AI kosong untuk diisi oleh stream
+      const aiMessageId = Date.now() + 1;
+      const initialAiMessage: ChatMessage = { id: aiMessageId, role: 'ai', content: '', sources: sources };
+      setChatHistory(prev => [...prev, initialAiMessage]);
+
+      // Baca stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       
-      setChatHistory(prev => [...prev, aiMessage]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        setChatHistory(prev => prev.map(msg => 
+            msg.id === aiMessageId ? { ...msg, content: msg.content + chunk } : msg
+        ));
+      }
+
     } catch (err) {
       const errorText = err instanceof Error ? err.message : 'Terjadi kesalahan.';
       const errorMessage: ChatMessage = { id: Date.now() + 1, role: 'ai', content: errorText };
@@ -791,7 +847,7 @@ export default function ChatPage() {
       setIsLoading(false);
     }
   };
-
+  
   const handleFeedback = async (message: ChatMessage, isHelpful: boolean) => {
     if (feedbackGiven[message.id]) return;
     try {
@@ -824,6 +880,9 @@ export default function ChatPage() {
   const greeting = user ? `Hai, ${user.nama_pengguna}! Apa yang bisa dibantu?` : "Silakan ajukan pertanyaan Anda.";
 
   return (
+        <div className="page-wrapper">
+      <div className="chat-container">
+
     <div className="chat-container">
       <header className="chat-header">
         <h1 className="title">Konsultasi Baru</h1>
@@ -886,13 +945,15 @@ export default function ChatPage() {
             className="searchInput"
             placeholder="Tuliskan perasaan atau pertanyaan Anda..."
             disabled={isLoading}
-          />
+            />
           <button type="submit" className="searchButton" disabled={isLoading}>Kirim</button>
         </form>
         <p className="disclaimer-chat">
           Souloria bukan pengganti saran medis profesional. <Link href="/bantuan-darurat">Butuh bantuan segera?</Link>
         </p>
       </footer>
+            </div>
+            </div>
     </div>
   );
 }

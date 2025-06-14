@@ -51,8 +51,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="main-content-child-wrapper">
-    <div className="auth-container">
+    <div className="page-wrapper">
       <div className="auth-form-wrapper">
         <h1 className="auth-title">Selamat Datang Kembali</h1>
         <p className="auth-subtitle">Masuk untuk melanjutkan sesi Anda.</p>
@@ -90,6 +89,5 @@ export default function LoginPage() {
         </p>
       </div>
       </div>
-    </div>
   );
 }

@@ -65,7 +65,7 @@ export default function RegisterPage() {
 
   return (
     // Wrapper untuk menengahkan konten di halaman
-    <div className="auth-page-wrapper">
+    <div className="page-wrapper">
       <div className="auth-form-wrapper">
         <h1 className="auth-title">Buat Akun Souloria</h1>
         <p className="auth-subtitle">Mulai perjalanan Anda menuju ketenangan.</p>
