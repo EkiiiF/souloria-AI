@@ -31,7 +31,6 @@ class FeedbackCreate(BaseModel):
     response: str
     is_helpful: bool
 
-
 # --- IMPLEMENTASI BARU: Skema untuk Pengguna & Autentikasi ---
 
 class UserBase(BaseModel):

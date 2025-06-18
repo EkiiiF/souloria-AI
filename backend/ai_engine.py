@@ -98,27 +98,3 @@ def generate_ai_response(query: str, relevant_articles: list):
     except Exception as e:
         print(f"Error saat memanggil Gemini API: {e}")
         return "Maaf, sepertinya ada sedikit kendala di pihak kami. Silakan coba beberapa saat lagi."
-
-# backend/ai_engine.py
-# ... (import yang sudah ada)
-
-# def generate_ai_response(query: str, relevant_articles: list):
-#     # ... (kode untuk membuat context tetap sama) ...
-#     context = "Berikut adalah beberapa artikel terpercaya mengenai kesehatan mental:\n\n"
-#     for i, article in enumerate(relevant_articles):
-#         context += f"--- Artikel {i+1}: {article.judul} ---\n"
-#         context += " ".join(article.isi_artikel_full.split()[:500])
-#         context += "\n\n"
-    
-#     prompt = f"""
-#     Anda adalah Souloria... (seluruh prompt Anda)
-#     """
-    
-#     try:
-#         # Gunakan stream=True untuk mendapatkan respons secara bertahap
-#         response_stream = gemini_model.generate_content(prompt, stream=True)
-#         for chunk in response_stream:
-#             # 'yield' akan mengirim setiap potongan teks ke pemanggilnya
-#             yield chunk.text
-#     except Exception as e:
-#         yield f"Maaf, terjadi kendala saat menghubungi AI: {e}"
